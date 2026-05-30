@@ -111,6 +111,7 @@ import {
 import { requestQueueGroupJoinRequests } from "./components/Group/GroupJoinRequests";
 import { DrawerComponent } from "./components/Drawer/Drawer";
 import { AddressQRCode } from "./components/AddressQRCode";
+import { QortalRequestDetails } from "./components/QortalRequestDetails";
 import { Settings } from "./components/Group/Settings";
 import { MainAvatar } from "./components/MainAvatar";
 import { useRetrieveDataLocalStorage } from "./useRetrieveDataLocalStorage";
@@ -2065,10 +2066,10 @@ function App() {
             </Box>
           )}
 
-          {messageQortalRequest?.html && (
-            <div
-              dangerouslySetInnerHTML={{ __html: messageQortalRequest?.html }}
-            />
+          {messageQortalRequest?.details && (
+            <Box sx={{ width: "90%" }}>
+              <QortalRequestDetails details={messageQortalRequest?.details} />
+            </Box>
           )}
           <Spacer height="15px" />
        
@@ -3155,10 +3156,12 @@ function App() {
             </>
           )}
 
-          {messageQortalRequestExtension?.html && (
-            <div
-              dangerouslySetInnerHTML={{ __html: messageQortalRequestExtension?.html }}
-            />
+          {messageQortalRequestExtension?.details && (
+            <Box sx={{ width: "90%" }}>
+              <QortalRequestDetails
+                details={messageQortalRequestExtension?.details}
+              />
+            </Box>
           )}
           <Spacer height="15px" />
        

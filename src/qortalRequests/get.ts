@@ -1280,73 +1280,20 @@ export const publishMultipleQDNResources = async (data: any, sender, isFromExten
   let checkbox1Var = false;
   if (!hasPermission) {
 
-   const resPermission = await getUserPermission({
-    text1: "Do you give this application permission to publish to QDN?",
-    html: `
-    <div style="max-height: 30vh; overflow-y: auto;">
-    <style>
-      body {
-        background-color: #121212;
-        color: #e0e0e0;
-      }
-  
-      .resource-container {
-        display: flex;
-        flex-direction: column;
-        border: 1px solid #444;
-        padding: 16px;
-        margin: 8px 0;
-        border-radius: 8px;
-        background-color: #1e1e1e;
-      }
-      
-      .resource-detail {
-        margin-bottom: 8px;
-      }
-      
-      .resource-detail span {
-        font-weight: bold;
-        color: #bb86fc;
-      }
-  
-      @media (min-width: 600px) {
-        .resource-container {
-          flex-direction: row;
-          flex-wrap: wrap;
-        }
-        .resource-detail {
-          flex: 1 1 45%;
-          margin-bottom: 0;
-          padding: 4px 0;
-        }
-      }
-    </style>
-  
-    ${data.resources
-      .map(
-        (resource) => `
-        <div class="resource-container">
-          <div class="resource-detail"><span>Service:</span> ${
-            resource.service
-          }</div>
-          <div class="resource-detail"><span>Name:</span> ${name}</div>
-          <div class="resource-detail"><span>Identifier:</span> ${
-            resource.identifier
-          }</div>
-          ${
-            resource.filename
-              ? `<div class="resource-detail"><span>Filename:</span> ${resource.filename}</div>`
-              : ""
-          }
-        </div>`
-      )
-      .join("")}
-  </div>
-  
-      `,
+    const resPermission = await getUserPermission({
+      text1: "Do you give this application permission to publish to QDN?",
+      details: {
+        type: "resources",
+        resources: data.resources.map((resource) => ({
+          service: resource.service,
+          name,
+          identifier: resource.identifier,
+          filename: resource.filename,
+        })),
+      },
       fee: +fee.fee * resources.length,
       ...handleDynamicValues
-  }, isFromExtension);
+    }, isFromExtension);
 
      const { accepted, checkbox1 = false } = resPermission || {
       accepted: false,
@@ -3623,45 +3570,18 @@ const crosschainAtInfo = await Promise.all(atPromises);
           return latest + +cur?.expectedForeignAmount;
         }, 0)
       )}
-      ${` ${buyingFees.ticker}`}`,
+	      ${` ${buyingFees.ticker}`}`,
       highlightedText: `Is using public node: ${isGateway}`,
       fee: '',
-      html: `
-      <div style="max-height: 30vh; overflow-y: auto; font-family: sans-serif;">
-        <style>
-          .fee-container {
-            background-color: #1e1e1e;
-            color: #e0e0e0;
-            border: 1px solid #444;
-            border-radius: 8px;
-            padding: 16px;
-            margin-bottom: 12px;
-          }
-          .fee-label {
-            font-weight: bold;
-            color: #bb86fc;
-            margin-bottom: 4px;
-          }
-          .fee-description {
-            font-size: 14px;
-            color: #cccccc;
-            margin-bottom: 16px;
-          }
-          
-        </style>
-    
-        <div class="fee-container">
-          <div class="fee-label">Total Unlocking Fee:</div>
-              <div>${(+buyingFees?.unlock?.fee * atAddresses?.length)?.toFixed(8)} ${buyingFees.ticker}</div>
-     <div class="fee-description">
-  This fee is an estimate based on ${atAddresses?.length} ${atAddresses?.length > 1 ? 'orders' : 'order'}, assuming a 300-byte size at a rate of ${buyingFees?.unlock?.feePerKb?.toFixed(8)} ${buyingFees.ticker} per KB.
-</div>
-          <div class="fee-label">Total Locking Fee:</div>
-          <div>${+buyingFees?.unlock.fee.toFixed(8)} ${buyingFees.ticker} per kb</div>
-    
-        </div>
-      </div>
-    `,
+      details: {
+          type: "buyOrderFees",
+          unlockLabel: "Total Unlocking Fee:",
+          unlockAmount: (+buyingFees?.unlock?.fee * atAddresses?.length)?.toFixed(8),
+          ticker: buyingFees.ticker,
+          unlockDescription: `This fee is an estimate based on ${atAddresses?.length} ${atAddresses?.length > 1 ? 'orders' : 'order'}, assuming a 300-byte size at a rate of ${buyingFees?.unlock?.feePerKb?.toFixed(8)} ${buyingFees.ticker} per KB.`,
+          lockLabel: "Total Locking Fee:",
+          lockDescription: `${+buyingFees?.unlock.fee.toFixed(8)} ${buyingFees.ticker} per kb`,
+        },
     }, isFromExtension);
     const { accepted } = resPermission;
     if (accepted) {
@@ -5624,74 +5544,22 @@ const assetBalance = await getAssetBalanceInfo(assetId)
       {
         text1: "Do you give this application permission to make the following payments and publishes?",
         text2: `Asset used in payments: ${assetInfo.name}`,
-        html: `
-      <div style="max-height: 30vh; overflow-y: auto;">
-      <style>
-        body {
-          background-color: #121212;
-          color: #e0e0e0;
-        }
-    
-        .resource-container {
-          display: flex;
-          flex-direction: column;
-          border: 1px solid #444;
-          padding: 16px;
-          margin: 8px 0;
-          border-radius: 8px;
-          background-color: #1e1e1e;
-        }
-        
-        .resource-detail {
-          margin-bottom: 8px;
-        }
-        
-        .resource-detail span {
-          font-weight: bold;
-          color: #bb86fc;
-        }
-    
-        @media (min-width: 600px) {
-          .resource-container {
-            flex-direction: row;
-            flex-wrap: wrap;
-          }
-          .resource-detail {
-            flex: 1 1 45%;
-            margin-bottom: 0;
-            padding: 4px 0;
-          }
-        }
-      </style>
-    
-      ${pendingTransactions.
-        filter((item)=> item.type === 'PAYMENT').map(
-          (payment) => `
-          <div class="resource-container">
-            <div class="resource-detail"><span>Recipient:</span> ${
-              payment.recipientAddress
-            }</div>
-            <div class="resource-detail"><span>Amount:</span> ${payment.amount}</div>
-          </div>`
-        )
-        .join("")}
-         ${[...pendingTransactions, ...pendingAdditionalArbitraryTxs].
-        filter((item)=> item.type === 'ARBITRARY').map(
-          (arbitraryTx) => `
-          <div class="resource-container">
-            <div class="resource-detail"><span>Service:</span> ${
-              arbitraryTx.service
-            }</div>
-            <div class="resource-detail"><span>Name:</span> ${name}</div>
-            <div class="resource-detail"><span>Identifier:</span> ${
-              arbitraryTx.identifier
-            }</div>
-          </div>`
-        )
-        .join("")}
-    </div>
-    
-        `,
+        details: {
+            type: "paymentsAndResources",
+            payments: pendingTransactions
+              .filter((item) => item.type === "PAYMENT")
+              .map((payment) => ({
+                recipientAddress: payment.recipientAddress,
+                amount: payment.amount,
+              })),
+            resources: [...pendingTransactions, ...pendingAdditionalArbitraryTxs]
+              .filter((item) => item.type === "ARBITRARY")
+              .map((arbitraryTx) => ({
+                service: arbitraryTx.service,
+                name,
+                identifier: arbitraryTx.identifier,
+              })),
+          },
         highlightedText: `Total Amount: ${totalAmount}`,
         fee: fee
       },
@@ -5964,42 +5832,14 @@ export const sessionPermissions = async (data, isFromExtension, appInfo) => {
       );
     }
 
-    // Show permission modal with the list of permissions
-    const permissionsListHtml = permissions
-      .map(
-        (permission) => `
-      <div style="
-        background-color: var(--background-paper);
-        border: 1px solid var(--border-color);
-        border-radius: 4px;
-        padding: 8px 12px;
-        margin: 4px 0;
-        font-family: monospace;
-        font-size: 14px;
-        color: var(--text-primary);
-      ">
-        ${permission}
-      </div>
-    `
-      )
-      .join('');
-
     const resPermission = await getUserPermission(
       {
         text1: `${appInfo.name} is requesting session permissions`,
         text2:  'The following permissions will be automatically granted for this session:',
-        html: `
-  <div style="
-    max-height: 40vh;
-    overflow-y: auto;
-    font-family: sans-serif;
-    padding: 10px;
-    background-color: var(--background-default);
-    border-radius: 8px;
-  ">
-    ${permissionsListHtml}
-  </div>
-`,
+        details: {
+          type: "sessionPermissions",
+          permissions,
+        },
         confirmCheckbox: true,
         confirmCheckboxLabel:
           'I trust this app and understand these permissions will auto-execute',
